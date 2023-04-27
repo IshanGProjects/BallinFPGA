@@ -1,0 +1,45 @@
+module audio_player(
+    input wire clk,
+    input wire rst,
+    output reg [7:0] audio_data,
+    output wire left_audio_out,
+    output wire right_audio_out
+);
+
+reg [20:0] address;
+reg [7:0] memory [0:2**21-1]; // Adjust the size according to your audio data size
+
+integer file;
+integer index;
+
+// Memory initialization
+initial begin
+    file = $fopen("4g.hex", "r");
+    for (index = 0; index < 2**21; index = index + 1) begin
+        if (!$feof(file)) begin
+            $fscanf(file, "%h", memory[index]);
+        end else begin
+            memory[index] = 8'h00;
+        end
+    end
+    $fclose(file);
+end
+
+reg [7:0] pwm_counter;
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        address <= 21'h00000;
+        audio_data <= 8'h00;
+        pwm_counter <= 8'h00;
+    end else begin
+        address <= address + 1;
+        audio_data <= memory[address];
+        pwm_counter <= pwm_counter + 1;
+    end
+end
+
+assign left_audio_out = (pwm_counter < audio_data) ? 1 : 0;
+assign right_audio_out = (pwm_counter < audio_data) ? 1 : 0;
+
+endmodule
