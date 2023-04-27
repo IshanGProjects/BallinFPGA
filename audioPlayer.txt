@@ -9,10 +9,11 @@ module audio_player(
 reg [20:0] address; // Use a 21-bit address (2^21 = 2097152 locations)
 reg [7:0] memory [0:2**21-1]; // Adjust the size according to your audio data size
 
+integer file; // Declare variables outside the initial block
+integer index;
+
 // Memory initialization
 initial begin
-    integer file;
-    integer index;
     file = $fopen("4g.hex", "r");
     for (index = 0; index < 2**21; index = index + 1) begin // Update loop limit to match memory size
         if (!$feof(file)) begin
