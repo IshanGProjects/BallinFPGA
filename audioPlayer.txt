@@ -1,11 +1,13 @@
 module audio_player(
     input wire clk,
     input wire rst,
-    output reg [7:0] audio_data
+    output reg [7:0] audio_data,
+    output wire left_audio_out,
+    output wire right_audio_out
 );
 
 reg [15:0] address;
-reg [7:0] memory [0:2**16-1]; // Adjust the size according to your audio data size
+reg [7:0] memory [0:2**21-1]; // Adjust the size according to your audio data size
 
 // Memory initialization
 initial begin
@@ -31,5 +33,8 @@ always @(posedge clk or posedge rst) begin
         audio_data <= memory[address];
     end
 end
+
+assign left_audio_out = audio_data;
+assign right_audio_out = audio_data;
 
 endmodule
