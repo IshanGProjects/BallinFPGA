@@ -6,15 +6,15 @@ module audio_player(
     output wire right_audio_out
 );
 
-reg [15:0] address;
+reg [20:0] address; // Use a 21-bit address (2^21 = 2097152 locations)
 reg [7:0] memory [0:2**21-1]; // Adjust the size according to your audio data size
 
 // Memory initialization
 initial begin
     integer file;
     integer index;
-    file = $fopen("your_output_file.hex", "r");
-    for (index = 0; index < 2**16; index = index + 1) begin
+    file = $fopen("4g.hex", "r");
+    for (index = 0; index < 2**21; index = index + 1) begin // Update loop limit to match memory size
         if (!$feof(file)) begin
             $fscanf(file, "%h", memory[index]);
         end else begin
@@ -26,7 +26,7 @@ end
 
 always @(posedge clk or posedge rst) begin
     if (rst) begin
-        address <= 16'h0000;
+        address <= 21'h00000; // Update reset value to match address width
         audio_data <= 8'h00;
     end else begin
         address <= address + 1;
