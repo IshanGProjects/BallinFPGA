@@ -91,7 +91,7 @@ reg [1:0] current_sound;
 reg sound_playing;
 
 always @(posedge mclk) begin
-    if (sw0 && !sound_playing) begin
+    if (sw[0] && !sound_playing) begin
         case (btn)
             4'b0001: current_sound <= 2'b00;
             4'b0010: current_sound <= 2'b01;
@@ -117,7 +117,7 @@ always @(posedge mclk) begin
             endcase
             left_audio_out <= (pwm_count <= sample);
             right_audio_out <= (pwm_count <= sample);
-            
+
             if (pwm_count == 255) begin
                 sub_count <= sub_count + 1;
                 if (sub_count == 5) begin
