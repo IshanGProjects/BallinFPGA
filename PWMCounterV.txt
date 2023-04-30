@@ -1,45 +1,40 @@
 module audio_player(
-    input wire clk,
-    input wire rst,
-    output reg [7:0] audio_data,
-    output wire left_audio_out,
-    output wire right_audio_out
+    input wire mclk,
+    output reg left_audio_out,
+    output reg right_audio_out
 );
 
-reg [20:0] address;
-reg [7:0] memory [0:2**21-1]; // Adjust the size according to your audio data size
+localparam MEM_SIZE = 250000;
+reg [7:0] memory[MEM_SIZE-1:0];
 
-integer file;
-integer index;
-
-// Memory initialization
 initial begin
-    file = $fopen("4g.hex", "r");
-    for (index = 0; index < 2**21; index = index + 1) begin
-        if (!$feof(file)) begin
-            $fscanf(file, "%h", memory[index]);
-        end else begin
-            memory[index] = 8'h00;
+    // Replace the path with your own path to the hex file
+    $readmemh("4g.hex", memory);
+end
+
+reg [5:0] count;
+reg [7:0] pwm_count;
+reg [18:0] address;
+reg [7:0] sample;
+reg [7:0] sub_count;
+
+always @(posedge mclk) begin
+    if (count == 7) begin
+        count <= 0;
+        pwm_count <= pwm_count + 1;
+        sample <= memory[address];
+        left_audio_out <= (pwm_count <= sample);
+        right_audio_out <= (pwm_count <= sample);
+        
+        if (pwm_count == 255) begin
+            sub_count <= sub_count + 1;
+            if (sub_count == 5) begin
+                sub_count <= 0;
+                if (address == (MEM_SIZE-1)) address <= 0;
+                else address <= address + 1;
+            end
         end
-    end
-    $fclose(file);
+    end else count <= count + 1;
 end
-
-reg [7:0] pwm_counter;
-
-always @(posedge clk or posedge rst) begin
-    if (rst) begin
-        address <= 21'h00000;
-        audio_data <= 8'h00;
-        pwm_counter <= 8'h00;
-    end else begin
-        address <= address + 1;
-        audio_data <= memory[address];
-        pwm_counter <= pwm_counter + 1;
-    end
-end
-
-assign left_audio_out = (pwm_counter < audio_data) ? 1 : 0;
-assign right_audio_out = (pwm_counter < audio_data) ? 1 : 0;
 
 endmodule
