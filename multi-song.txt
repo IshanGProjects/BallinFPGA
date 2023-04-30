@@ -155,7 +155,7 @@ initial begin
     $readmemh("4g.hex", memory0);
     $readmemh("pipe.hex", memory1);
     $readmemh("21.hex", memory2);
-    $readmemh("4g.hex", memory3); // Assuming you have a fourth file with the same name, change it if needed
+    $readmemh("EB.hex", memory3); // Assuming you have a fourth file with the same name, change it if needed
 end
 
 reg [5:0] count;
