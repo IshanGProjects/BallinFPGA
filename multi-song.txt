@@ -1,0 +1,59 @@
+module sound_switcher (
+    input wire clk,
+    input wire [15:0] sw,
+    input wire [3:0] btn,
+    output reg left_audio_out,
+    output reg right_audio_out
+);
+
+reg [1:0] current_sound;
+wire play = sw[0];
+
+always @(posedge clk) begin
+    if (btn[0]) current_sound <= 2'b00;
+    else if (btn[1]) current_sound <= 2'b01;
+    else if (btn[2]) current_sound <= 2'b10;
+    else if (btn[3]) current_sound <= 2'b11;
+end
+
+// Integrated audio player
+reg [7:0] memory[4*250000-1:0]; // Memory size multiplied by 4 for four audio clips
+
+initial begin
+    $readmemh("4g.hex", memory[0*250000+:250000]);
+    $readmemh("pipe.hex", memory[1*250000+:250000]);
+    $readmemh("21.hex", memory[2*250000+:250000]);
+    $readmemh("4g.hex", memory[3*250000+:250000]);
+end
+
+reg [5:0] count;
+reg [7:0] pwm_count;
+reg [18:0] address;
+reg [7:0] sample;
+reg [7:0] sub_count;
+
+always @(posedge clk) begin
+    if (play) begin
+        if (count == 7) begin
+            count <= 0;
+            pwm_count <= pwm_count + 1;
+            sample <= memory[{current_sound, address}];
+            left_audio_out <= (pwm_count <= sample);
+            right_audio_out <= (pwm_count <= sample);
+            
+            if (pwm_count == 255) begin
+                sub_count <= sub_count + 1;
+                if (sub_count == 5) begin
+                    sub_count <= 0;
+                    if (address == (250000-1)) address <= 0;
+                    else address <= address + 1;
+                end
+            end
+        end else count <= count + 1;
+    end else begin
+        left_audio_out <= 1'b0;
+        right_audio_out <= 1'b0;
+    end
+end
+
+endmodule
