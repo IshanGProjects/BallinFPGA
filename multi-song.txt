@@ -62,7 +62,7 @@ endmodule
 //--------------
 module audio_player(
     input wire mclk,
-    input wire sw0,
+    input wire [15:0] sw,
     input wire [3:0] btn,
     output reg left_audio_out,
     output reg right_audio_out
@@ -101,7 +101,7 @@ always @(posedge mclk) begin
         endcase
         sound_playing <= 1;
         address <= 0;
-    end else if (!sw0) begin
+    end else if (!sw[0]) begin
         sound_playing <= 0;
     end
 
